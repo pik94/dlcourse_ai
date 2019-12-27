@@ -1,8 +1,8 @@
 import numpy as np
 
 
-def check_gradient(f, x, delta=1e-5, tol = 1e-4):
-    '''
+def check_gradient(f, x: np.ndarray, delta: float = 1e-5, tol: float = 1e-4):
+    """
     Checks the implementation of analytical gradient by comparing
     it to numerical gradient using two-point formula
 
@@ -14,14 +14,15 @@ def check_gradient(f, x, delta=1e-5, tol = 1e-4):
 
     Return:
       bool indicating whether gradients match or not
-    '''
+    """
     
     assert isinstance(x, np.ndarray)
     assert x.dtype == np.float
     
     orig_x = x.copy()
     fx, analytic_grad = f(x)
-    assert np.all(np.isclose(orig_x, x, tol)), "Functions shouldn't modify input variables"
+    assert np.all(np.isclose(orig_x, x, tol)), \
+        "Functions shouldn't modify input variables"
 
     assert analytic_grad.shape == x.shape
     analytic_grad = analytic_grad.copy()
@@ -32,18 +33,22 @@ def check_gradient(f, x, delta=1e-5, tol = 1e-4):
     while not it.finished:
         ix = it.multi_index
         analytic_grad_at_ix = analytic_grad[ix]
-        numeric_grad_at_ix = 0
 
         # TODO compute value of numeric gradient of f to idx
+        value = x[ix].copy()
+        x[ix] = value + delta
+        fx_r = f(x)[0]
+        x[ix] = value - delta
+        fx_l = f(x)[0]
+        numeric_grad_at_ix = (fx_r - fx_l) / (2*delta)
+        x[ix] = value
         if not np.isclose(numeric_grad_at_ix, analytic_grad_at_ix, tol):
-            print("Gradients are different at %s. Analytic: %2.5f, Numeric: %2.5f" % (ix, analytic_grad_at_ix, numeric_grad_at_ix))
+            print((f'Gradients are different at {ix}. '
+                   f'Analytic: {analytic_grad_at_ix: .5f}, '
+                   f'Numeric: {numeric_grad_at_ix: .5f}'))
             return False
 
         it.iternext()
 
-    print("Gradient check passed!")
+    print('Gradient check passed!')
     return True
-
-        
-
-        
