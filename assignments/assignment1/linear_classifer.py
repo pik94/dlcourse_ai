@@ -1,8 +1,8 @@
 import numpy as np
 
 
-def softmax(predictions):
-    '''
+def softmax(predictions: np.ndarray) -> np.ndarray:
+    """
     Computes probabilities from scores
 
     Arguments:
@@ -12,14 +12,24 @@ def softmax(predictions):
     Returns:
       probs, np array of the same shape as predictions - 
         probability for every class, 0..1
-    '''
+    """
+
     # TODO implement softmax
     # Your final implementation shouldn't have any loops
-    raise Exception("Not implemented!")
+    # raise Exception('Not implemented!')
+    if predictions.ndim == 1:
+        predictions = np.array([predictions])
+
+    predictions = np.add(predictions.T, -predictions.max(axis=1)).T
+    predictions = np.exp(predictions)
+    probabilities = (predictions.T / predictions.sum(axis=1)).T
+
+    return probabilities
 
 
-def cross_entropy_loss(probs, target_index):
-    '''
+def cross_entropy_loss(probs: np.ndarray,
+                       target_index: np.ndarray) -> np.ndarray:
+    """
     Computes cross-entropy loss
 
     Arguments:
@@ -30,14 +40,23 @@ def cross_entropy_loss(probs, target_index):
 
     Returns:
       loss: single value
-    '''
+    """
+
     # TODO implement cross-entropy
     # Your final implementation shouldn't have any loops
-    raise Exception("Not implemented!")
+    # raise Exception('Not implemented!')
+    if probs.ndim == 1:
+        probs = np.array([probs])
+
+    probs = probs[tuple(range(len(probs))), target_index.ravel()]
+    h = -np.log(probs).sum()
+
+    return h
 
 
-def softmax_with_cross_entropy(predictions, target_index):
-    '''
+def softmax_with_cross_entropy(predictions: np.ndarray,
+                               target_index: np.ndarray):
+    """
     Computes softmax and cross-entropy loss for model predictions,
     including the gradient
 
@@ -49,17 +68,28 @@ def softmax_with_cross_entropy(predictions, target_index):
 
     Returns:
       loss, single value - cross-entropy loss
-      dprediction, np array same shape as predictions - gradient of predictions by loss value
-    '''
+      dprediction, np array same shape as predictions - gradient of
+      predictions by loss value
+    """
     # TODO implement softmax with cross-entropy
     # Your final implementation shouldn't have any loops
-    raise Exception("Not implemented!")
+    # raise Exception('Not implemented!')
 
+    if predictions.ndim == 1:
+        predictions = np.array([predictions])
+
+    probabilities = softmax(predictions)
+    loss = cross_entropy_loss(probabilities, target_index)
+
+    mask = np.zeros(predictions.shape)
+    mask[tuple(range(len(target_index))), target_index.ravel()] = 1
+
+    dprediction = probabilities - mask
     return loss, dprediction
 
 
 def l2_regularization(W, reg_strength):
-    '''
+    """
     Computes L2 regularization loss on weights and its gradient
 
     Arguments:
@@ -69,17 +99,22 @@ def l2_regularization(W, reg_strength):
     Returns:
       loss, single value - l2 regularization loss
       gradient, np.array same shape as W - gradient of weight by l2 loss
-    '''
+    """
 
     # TODO: implement l2 regularization and gradient
     # Your final implementation shouldn't have any loops
-    raise Exception("Not implemented!")
+    # raise Exception('Not implemented!')
+
+    loss = reg_strength * (W**2).sum()
+    grad = 2 * reg_strength * W
 
     return loss, grad
-    
 
-def linear_softmax(X, W, target_index):
-    '''
+
+def linear_softmax(X: np.ndarray,
+                   W: np.ndarray,
+                   target_index: np.ndarray):
+    """
     Performs linear classification and returns loss and gradient over W
 
     Arguments:
@@ -91,13 +126,15 @@ def linear_softmax(X, W, target_index):
       loss, single value - cross-entropy loss
       gradient, np.array same shape as W - gradient of weight by loss
 
-    '''
+    """
     predictions = np.dot(X, W)
 
     # TODO implement prediction and gradient over W
     # Your final implementation shouldn't have any loops
-    raise Exception("Not implemented!")
-    
+
+    loss, dpredictions = softmax_with_cross_entropy(predictions, target_index)
+    dW = np.dot(X.T, dpredictions)
+
     return loss, dW
 
 
